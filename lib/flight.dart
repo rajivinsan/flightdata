@@ -77,25 +77,60 @@ class _FlightListPageState extends State<FlightListPage> {
   }
 
   void _loadFlightsFromJson() async {
-    try {
-      String data = await rootBundle.loadString('assets/flightdata.json');
-      List<dynamic> flightsJson = jsonDecode(data);
-      List<Flight> flights =
-          flightsJson.map((json) => Flight.fromJson(json)).toList();
-      List<String> departureStations =
-          flights.map((flight) => flight.departureStation).toSet().toList();
-      departureStations.sort();
-      List<String> arrivalStations =
-          flights.map((flight) => flight.arrivalStation).toSet().toList();
-      arrivalStations.sort();
-      setState(() {
-        _flights = flights;
-        _departureStations = ['All'] + departureStations;
+    // try {
+    //   String data = await rootBundle.loadString('assets/flightdata.json');
+    //   List<dynamic> flightsJson = jsonDecode(data);
+    //   List<Flight> flights =
+    //       flightsJson.map((json) => Flight.fromJson(json)).toList();
+    //   List<String> departureStations =
+    //       flights.map((flight) => flight.departureStation).toSet().toList();
+    //   departureStations.sort();
+    //   List<String> arrivalStations =
+    //       flights.map((flight) => flight.arrivalStation).toSet().toList();
+    //   arrivalStations.sort();
+    //   setState(() {
+    //     _flights = flights;
+    //     _departureStations = ['All'] + departureStations;
 
-        _arrivalStations = ['All'] + arrivalStations;
-        error = _flights.length.toString();
-      });
-    } on Exception catch (_, ex) {
+    //     _arrivalStations = ['All'] + arrivalStations;
+    //     error = _flights.length.toString();
+    //   });
+    // } on Exception catch (_, ex) {
+    //   setState(() {
+    //     error = ex.toString();
+    //   });
+    // }
+    try {
+      // Make an HTTP GET request to the API endpoint
+      final response =
+          await http.get(Uri.parse('https://raw.githubusercontent.com/rajivinsan/flightdata/master/assets/flightdata.json'));
+
+      if (response.statusCode == 200) {
+        // If the HTTP request is successful, parse the JSON data
+        List<dynamic> flightsJson = jsonDecode(response.body);
+        List<Flight> flights =
+            flightsJson.map((json) => Flight.fromJson(json)).toList();
+        List<String> departureStations =
+            flights.map((flight) => flight.departureStation).toSet().toList();
+        departureStations.sort();
+        List<String> arrivalStations =
+            flights.map((flight) => flight.arrivalStation).toSet().toList();
+        arrivalStations.sort();
+        setState(() {
+          _flights = flights;
+          _departureStations = ['All'] + departureStations;
+          _arrivalStations = ['All'] + arrivalStations;
+          error = _flights.length.toString();
+        });
+      } else {
+        // Handle error response from the API
+        setState(() {
+          error =
+              'Failed to fetch data from API. Status Code: ${response.statusCode}';
+        });
+      }
+    } catch (ex) {
+      // Handle other exceptions that might occur during the process
       setState(() {
         error = ex.toString();
       });
